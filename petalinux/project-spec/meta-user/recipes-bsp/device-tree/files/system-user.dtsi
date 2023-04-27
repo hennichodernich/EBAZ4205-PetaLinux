@@ -1,0 +1,193 @@
+/include/ "system-conf.dtsi"
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	model = "EBAZ4205 Zynq Board";
+	compatible = "noname,zynq-ebaz4205", "xlnx,zynq-7000";	
+	
+/*
+	ps2: ps2@0 {
+        compatible = "ps2-gpio";
+        interrupt-parent = <&gpio0>;
+        interrupts = <54 2>;
+        data-gpios = <&gpio0 55 GPIO_ACTIVE_HIGH>;
+        clk-gpios = <&gpio0 54 GPIO_ACTIVE_HIGH>;
+    	};
+
+	gpio-keys {
+    	compatible = "gpio-keys";
+    	#address-cells = <1>;
+    	#size-cells = <0>;
+    	autorepeat;
+    	sw_down {
+        	label = "sw_down";
+        	gpios = <&gpio0 55 GPIO_ACTIVE_LOW>;
+        	linux,code = <108>;
+        	gpio-key,wakeup;
+        	autorepeat;
+		};
+    	sw_up {
+        	label = "sw_up";
+        	gpios = <&gpio0 54 GPIO_ACTIVE_LOW>;
+        	linux,code = <103>;
+        	gpio-key,wakeup;
+        	autorepeat;
+    	};
+    };
+*/
+       regulator_vcc33: fixedregulator {
+                compatible = "regulator-fixed";
+                regulator-name = "VCC33";
+                regulator-min-microvolt = <3300000>;
+                regulator-max-microvolt = <3300000>;
+                regulator-boot-on;
+                regulator-always-on;
+        };
+
+
+
+	
+    /* Use S/PDIF transmitter as codec required by simple-audio-card */
+    playback_codec: playback-codec {
+        compatible = "linux,spdif-dit";
+        #sound-dai-cells = <0>;
+    };
+
+    sound {
+        compatible = "simple-audio-card";
+        simple-audio-card,name = "ebazaudio";
+
+        simple-audio-card,widgets =
+            "Line", "Line Out Jack",
+            "Headphone", "Out Jack";
+  
+        simple-audio-card,routing =
+            "Out Jack", "spdif-out";
+
+        simple-audio-card,format = "i2s";
+
+        simple-audio-card,cpu {
+            sound-dai = <&audio_axi_i2s_adi_0>;
+        };
+
+        simple-audio-card,codec {
+            sound-dai = <&playback_codec>;
+        };
+    };
+};
+
+&clkc {
+    fclk-enable = <0xf>;
+};
+
+&axi_gpio_0 {
+	#gpio-cells = <2>;
+};
+
+/*
+&axi_quad_spi_0 {
+    tsc2046@0 {
+	reg = <0>;
+	compatible = "ti,tsc2046";
+	interrupt-parent = <&gpio0>;
+	interrupts = <58 2>;
+	spi-max-frequency = <2000000>;
+	pendown-gpio = <&gpio0 58 GPIO_ACTIVE_HIGH>;
+	vcc-supply = <&regulator_vcc33>;
+
+	ti,x-min = /bits/ 16 <0>;
+	ti,x-max = /bits/ 16 <4800>;
+	ti,y-min = /bits/ 16 <0>;
+	ti,y-max = /bits/ 16 <3200>;
+	ti,x-plate-ohms = /bits/ 16 <40>;
+	ti,pressure-max = /bits/ 16 <255>;
+
+	wakeup-source;
+    };
+};
+*/
+&spi0 {
+/*
+    ili9488@0 {
+        compatible = "ilitek,ili9488";
+        reg = <0>;
+        spi-max-frequency = <32000000>;
+        rotate = <270>;
+        buswidth = <8>;
+        reset-gpios = <&axi_gpio_0 7 GPIO_ACTIVE_LOW>;
+        dc-gpios = <&axi_gpio_0 6 GPIO_ACTIVE_HIGH>;
+        led-gpios = <&axi_gpio_0 5 GPIO_ACTIVE_HIGH>;
+        debug = <0>;
+    };
+*/
+};
+
+&nand0 {
+    arm,nand-cycle-t3 = <0x2>;
+	arm,nand-cycle-t1 = <0x5>;
+	arm,nand-cycle-t5 = <0x1>;
+	arm,nand-cycle-t0 = <0x5>;
+	arm,nand-cycle-t4 = <0x2>;
+	arm,nand-cycle-t2 = <0x2>;
+	arm,nand-cycle-t6 = <0x2>;
+	partition@nand-fsbl-uboot {
+		label = "nand-fsbl-uboot";
+		reg = <0x0 0x300000>;
+	};
+
+	partition@nand-jffs2 {
+		label = "nand-jffs2";
+		reg = <0x1220000 0x1000000>;
+	};
+
+	partition@nand-allrootfs {
+		label = "nand-allrootfs";
+		reg = <0x2a20000 0x4000000>;
+	};
+
+	partition@nand-reserve {
+		label = "nand-reserve";
+		reg = <0x7e00000 0x200000>;
+	};
+
+	partition@nand-device-tree {
+		label = "nand-device-tree";
+		reg = <0x800000 0x20000>;
+	};
+
+	partition@nand-rootfs {
+		label = "nand-rootfs";
+		reg = <0x820000 0xa00000>;
+	};
+
+	partition@nand-bitstream {
+		label = "nand-bitstream";
+		reg = <0x2220000 0x800000>;
+	};
+
+	partition@nand-release {
+		label = "nand-release";
+		reg = <0x6a20000 0x13e0000>;
+	};
+
+	partition@nand-linux {
+		label = "nand-linux";
+		reg = <0x300000 0x500000>;
+	};
+};
+
+/*
+* We need to disable Linux XADC driver to use XADC for audio recording
+*/
+&adc {
+    status = "disabled";
+};
+
+&audio_axi_i2s_adi_0 {
+    compatible = "adi,axi-i2s-1.00.a";
+    clocks = <&clkc 18>, <&clkc 17>; // FCLK_CLK3, FCLK_CLK2
+    clock-names = "axi", "ref";
+    dmas = <&dmac_s 0 &dmac_s 1>;
+    dma-names = "tx", "rx";
+    #sound-dai-cells = <0>;
+};

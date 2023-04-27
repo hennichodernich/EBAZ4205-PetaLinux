@@ -1,0 +1,4 @@
+CONFIG_peekpoke
+CONFIG_gpio-demo
+CONFIG_fbtft
+CONFIG_fbtest

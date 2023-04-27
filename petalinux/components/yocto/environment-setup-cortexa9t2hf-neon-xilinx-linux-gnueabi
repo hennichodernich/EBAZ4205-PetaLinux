@@ -1,0 +1,67 @@
+# Check for LD_LIBRARY_PATH being set, which can break SDK and generally is a bad practice
+# http://tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html#AEN80
+# http://xahlee.info/UnixResource_dir/_/ldpath.html
+# Only disable this check if you are absolutely know what you are doing!
+if [ ! -z "$LD_LIBRARY_PATH" ]; then
+    echo "Your environment is misconfigured, you probably need to 'unset LD_LIBRARY_PATH'"
+    echo "but please check why this was set in the first place and that it's safe to unset."
+    echo "The SDK will not operate correctly in most cases when LD_LIBRARY_PATH is set."
+    echo "For more references see:"
+    echo "  http://tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html#AEN80"
+    echo "  http://xahlee.info/UnixResource_dir/_/ldpath.html"
+    return 1
+fi
+export SDKTARGETSYSROOT=/home/henning/petalinux/ebaz4205/ebaztest20/components/yocto/tmp/sysroots/zynq-generic
+export PATH=/home/henning/petalinux/ebaz4205/ebaztest20/components/yocto/tmp/sysroots/x86_64/usr/bin:/home/henning/petalinux/ebaz4205/ebaztest20/components/yocto/tmp/sysroots/x86_64/usr/sbin:/home/henning/petalinux/ebaz4205/ebaztest20/components/yocto/tmp/sysroots/x86_64/bin:/home/henning/petalinux/ebaz4205/ebaztest20/components/yocto/tmp/sysroots/x86_64/sbin:/home/henning/petalinux/ebaz4205/ebaztest20/components/yocto/tmp/sysroots/x86_64/usr/bin/../x86_64-petalinux-linux/bin:/home/henning/petalinux/ebaz4205/ebaztest20/components/yocto/tmp/sysroots/x86_64/usr/bin/arm-xilinx-linux-gnueabi:/home/henning/petalinux/ebaz4205/ebaztest20/components/yocto/tmp/sysroots/x86_64/usr/bin/arm-xilinx-linux-musl:$PATH
+export PKG_CONFIG_SYSROOT_DIR=$SDKTARGETSYSROOT
+export PKG_CONFIG_PATH=$SDKTARGETSYSROOT/usr/lib/pkgconfig:$SDKTARGETSYSROOT/usr/share/pkgconfig
+export CONFIG_SITE=/home/henning/petalinux/ebaz4205/ebaztest20/components/yocto/site-config-cortexa9t2hf-neon-xilinx-linux-gnueabi
+export OECORE_NATIVE_SYSROOT="/home/henning/petalinux/ebaz4205/ebaztest20/components/yocto/tmp/sysroots/x86_64"
+export OECORE_TARGET_SYSROOT="$SDKTARGETSYSROOT"
+export OECORE_ACLOCAL_OPTS="-I /home/henning/petalinux/ebaz4205/ebaztest20/components/yocto/tmp/sysroots/x86_64/usr/share/aclocal"
+export OECORE_BASELIB="lib"
+export OECORE_TARGET_ARCH="arm"
+export OECORE_TARGET_OS="linux-gnueabi"
+unset command_not_found_handle
+export CC="arm-xilinx-linux-gnueabi-gcc  -mthumb -mfpu=neon -mfloat-abi=hard -mcpu=cortex-a9 --sysroot=$SDKTARGETSYSROOT"
+export CXX="arm-xilinx-linux-gnueabi-g++  -mthumb -mfpu=neon -mfloat-abi=hard -mcpu=cortex-a9 --sysroot=$SDKTARGETSYSROOT"
+export CPP="arm-xilinx-linux-gnueabi-gcc -E  -mthumb -mfpu=neon -mfloat-abi=hard -mcpu=cortex-a9 --sysroot=$SDKTARGETSYSROOT"
+export AS="arm-xilinx-linux-gnueabi-as "
+export LD="arm-xilinx-linux-gnueabi-ld  --sysroot=$SDKTARGETSYSROOT"
+export GDB=arm-xilinx-linux-gnueabi-gdb
+export STRIP=arm-xilinx-linux-gnueabi-strip
+export RANLIB=arm-xilinx-linux-gnueabi-ranlib
+export OBJCOPY=arm-xilinx-linux-gnueabi-objcopy
+export OBJDUMP=arm-xilinx-linux-gnueabi-objdump
+export READELF=arm-xilinx-linux-gnueabi-readelf
+export AR=arm-xilinx-linux-gnueabi-ar
+export NM=arm-xilinx-linux-gnueabi-nm
+export M4=m4
+export TARGET_PREFIX=arm-xilinx-linux-gnueabi-
+export CONFIGURE_FLAGS="--target=arm-xilinx-linux-gnueabi --host=arm-xilinx-linux-gnueabi --build=x86_64-linux --with-libtool-sysroot=$SDKTARGETSYSROOT"
+export CFLAGS=" -O2 -pipe -g -feliminate-unused-debug-types "
+export CXXFLAGS=" -O2 -pipe -g -feliminate-unused-debug-types "
+export LDFLAGS="-Wl,-O1 -Wl,--hash-style=gnu -Wl,--as-needed"
+export CPPFLAGS=""
+export KCFLAGS="--sysroot=$SDKTARGETSYSROOT"
+export OECORE_DISTRO_VERSION="2020.2"
+export OECORE_SDK_VERSION="2020.2"
+export ARCH=arm
+export CROSS_COMPILE=arm-xilinx-linux-gnueabi-
+
+# Append environment subscripts
+if [ -d "$OECORE_TARGET_SYSROOT/environment-setup.d" ]; then
+    for envfile in $OECORE_TARGET_SYSROOT/environment-setup.d/*.sh; do
+	    . $envfile
+    done
+fi
+if [ -d "$OECORE_NATIVE_SYSROOT/environment-setup.d" ]; then
+    for envfile in $OECORE_NATIVE_SYSROOT/environment-setup.d/*.sh; do
+	    . $envfile
+    done
+fi
+export OE_SKIP_SDK_CHECK=1
+export DEPLOY_DIR_IMAGE=/home/henning/petalinux/ebaz4205/ebaztest20/components/yocto/tmp/deploy/images/zynq-generic
+export PATH=/home/henning/petalinux/ebaz4205/ebaztest20/components/yocto/sysroots/x86_64-petalinux-linux/usr/bin:$PATH
+printf 'SDK environment now set up; additionally you may now run devtool to perform development tasks.\nRun devtool --help for further details.\n'
+(which bitbake > /dev/null 2>&1 && echo 'WARNING: attempting to use the extensible SDK in an environment set up to run bitbake - this may lead to unexpected results. Please source this script in a new shell session instead.') || true
