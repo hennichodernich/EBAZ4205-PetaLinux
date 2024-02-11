@@ -56,3 +56,4 @@ Network configuration is set to DHCP, a serial console will be available on J7. 
 
 Analog Devices' Kuiper Linux is a modified Raspbian for use on Zynq-7000 boards (among others). I recommend to use that as a basis. To support the EBAZ4205, you need to modify boot partition and rootfs. Put the `BOOT.BIN` from `images` and `boot.scr` and `uImage` from `images/raspbian` on the FAT32 boot partition. 
 The kernel modules matching the PetaLinux kernel in the uImage need to copied to the rootfs manually: For your convenience, you can find the PetaLinux rootfs in a cpio.gz in `images/raspbian`. Open it with Midnight Commander and copy over the kernel modules manually into Raspbian's rootfs.
+If you plan to compile the kernel yourself, beware that the correct uImage to use is the one the symlink `build/tmp/deploy/images/zynq-generic/uImage` points to. The one in `images/linux/` contains the rootfs as ramdisk and does not mount the Raspbian rootfs on the SD card.
